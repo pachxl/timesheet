@@ -19,6 +19,9 @@ const client = new Client({
     GatewayIntentBits.GuildVoiceStates,
     GatewayIntentBits.GuildMembers,
   ],
+  presence: {
+    status: "invisible",
+  }
 });
 
 client.once(Events.ClientReady, async (c) => {
