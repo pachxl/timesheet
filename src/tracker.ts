@@ -21,16 +21,16 @@ export function handleVoiceStateUpdate(
   const guildId = newState.guild.id;
   const now = Math.floor(Date.now() / 1000);
 
-  const wasInChannel = !!oldState.channelId;
-  const isInChannel = !!newState.channelId;
+  const wasActive = !!oldState.channelId && !oldState.selfDeaf && !oldState.serverDeaf;
+  const isActive = !!newState.channelId && !newState.selfDeaf && !newState.serverDeaf;
 
-  if (!wasInChannel && isInChannel) {
+  if (!wasActive && isActive) {
     stmts.startSession.run(userId, guildId, newState.channelId!, now);
-  } else if (wasInChannel && !isInChannel) {
+  } else if (wasActive && !isActive) {
     stmts.endSession.run(now, userId, guildId);
   } else if (
-    wasInChannel &&
-    isInChannel &&
+    wasActive &&
+    isActive &&
     oldState.channelId !== newState.channelId
   ) {
     stmts.endSession.run(now, userId, guildId);
@@ -49,7 +49,7 @@ export async function syncExistingVoiceUsers(client: Client, guildId: string) {
   if (!guild) return;
 
   for (const [, state] of guild.voiceStates.cache) {
-    if (state.channelId && !state.member?.user.bot) {
+    if (state.channelId && !state.member?.user.bot && !state.selfDeaf && !state.serverDeaf) {
       stmts.startSession.run(state.id, guildId, state.channelId, now);
     }
   }
